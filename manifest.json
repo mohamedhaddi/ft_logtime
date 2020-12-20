@@ -1,0 +1,19 @@
+{
+	"manifest_version": 2,
+	"name": "Logtime",
+	"version": "1.0",
+	"description": "Calculates your logtime for the current month on intra.42.fr.",
+	"icons": {
+		"48": "icons/1337-logo.jpg"
+	},
+	"content_scripts": [
+		{
+			"matches": [
+				"https://profile.intra.42.fr/*"
+			],
+			"js": [
+				"logtime.js"
+			]
+		}
+	]
+}
