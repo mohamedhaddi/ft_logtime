@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Logtime",
-	"version": "1.0",
+	"version": "1.1",
 	"description": "Calculates your logtime for the current month on intra.42.fr.",
 	"content_scripts": [
 		{
