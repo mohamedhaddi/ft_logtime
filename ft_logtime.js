@@ -25,7 +25,7 @@ fetch(url)
 		const monthNames = ["January", "February", "March", "April", "May", "June",
 			"July", "August", "September", "October", "November", "December"
 		];
-		logtime = 'Yer ' + monthNames[month - 1] + ' logtime be '
+		logtime = 'Your ' + monthNames[month - 1] + ' logtime is '
 			+ '<span style="text-decoration: underline; '
 			+ 'text-decoration-style: dotted; '
 			+ 'text-decoration-thickness: 2px; '
