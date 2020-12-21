@@ -37,9 +37,5 @@ fetch(url)
 		})[0]
 
 		logtime_title_element.insertAdjacentHTML('beforeend', '<span style = "color: #00babc">' + logtime + '</span>')
-		alert('Yer logtime fer this month be '
-			+ ("0" + hour).slice(-2) + ':'
-			+ ("0" + minute).slice(-2) + ':'
-			+ ("0" + second).slice(-2))
 	})
 	.catch(err => {throw err});
