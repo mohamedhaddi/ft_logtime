@@ -22,10 +22,18 @@ fetch(url)
 		minute = minute % 60 + Math.floor(second / 60);
 		second = second % 60;
 
-		logtime = 'Yer logtime fer this month be '
+		const monthNames = ["January", "February", "March", "April", "May", "June",
+			"July", "August", "September", "October", "November", "December"
+		];
+		logtime = 'Yer ' + monthNames[month - 1] + ' logtime be '
+			+ '<span style="text-decoration: underline; '
+			+ 'text-decoration-style: dotted; '
+			+ 'text-decoration-thickness: 2px; '
+			+ 'text-underline-offset: .2vh">'
 			+ ("0" + hour).slice(-2) + ':'
 			+ ("0" + minute).slice(-2) + ':'
 			+ ("0" + second).slice(-2)
+			+ '</span>'
 
 		section_titles = document.getElementsByClassName('profile-title')
 		logtime_title_element = Array.from(section_titles).map(el => {
@@ -36,6 +44,6 @@ fetch(url)
 			return el
 		})[0]
 
-		logtime_title_element.insertAdjacentHTML('beforeend', '<span style = "color: #00babc">' + logtime + '</span>')
+		logtime_title_element.insertAdjacentHTML('beforeend', '<span style = "color: #00babc; font-size: calc(.7em + .3vmin) !important">' + logtime + '</span>')
 	})
 	.catch(err => {throw err});
