@@ -12,5 +12,10 @@
 				"logtime.js"
 			]
 		}
-	]
+	],
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "logtime@intra.42.fr"
+		}
+	}
 }
