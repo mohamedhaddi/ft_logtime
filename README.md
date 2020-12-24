@@ -6,8 +6,8 @@ The sum is updated every time the page is reloaded.
 
 If you'd like you use it:
 
-## For Chrome
+### For Chrome
 It is available in the [Chrome Web Store](https://chrome.google.com/webstore/detail/ftlogtime/mnohnflacgkmhaocfhhmjeeciibiciep).
 
-## For Firefox:
+### For Firefox:
 Just download the file `firefox/web-ext-artifacts/ft_logtime-1.7-an+fx.xpi` and upload it to **Menu > Add-ons > Settings cog > Install Add-on From File** in your Firefox browser.
