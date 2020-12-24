@@ -1,5 +1,5 @@
 # ft_logtime
-A simple extension for Firefox and Chrome that sums up the log time of a user's current month on their profile at [intra.42.fr](intra.42.fr) and shows it in their *Logtime* section.
+A simple extension for Firefox and Chrome that sums up the log time of a user's current month on their profile at [https://intra.42.fr](https://intra.42.fr) and shows it in their *Logtime* section.
 The sum is updated every time the page is reloaded.
 
 <img width="579" alt="Screen Shot 2020-12-21 at 5 49 24 PM" src="https://user-images.githubusercontent.com/6943864/102802015-525f0580-43b6-11eb-82b6-c0440b882a32.png">
