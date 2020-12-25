@@ -1,14 +1,18 @@
 {
     "manifest_version": 2,
     "name": "ft_logtime",
-    "version": "1.7",
+    "version": "1.8",
     "description": "Calculates your logtime for the current month on intra.42.fr.",
     "icons": {
         "48": "icons/42-logo.png"
     },
     "content_scripts": [
         {
-            "matches": ["https://profile.intra.42.fr/"],
+            "matches": [
+                "https://profile.intra.42.fr/",
+                "https://profile.intra.42.fr/users/*",
+                "https://profile.intra.42.fr/users/*/"
+            ],
             "js": ["ft_logtime.js"]
         }
     ],
