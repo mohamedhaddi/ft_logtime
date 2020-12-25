@@ -1,24 +1,3 @@
-function sumTime(array) {
-    let times = [3600, 60, 1],
-        sum = array
-            .map((s) => s.reduce((s, v, i) => s + times[i] * v, 0))
-            .reduce((a, b) => a + b, 0);
-
-    return times
-        .map((t) => [Math.floor(sum / t), (sum %= t)][0])
-        .map((v) => v.toString().padStart(2, 0))
-        .join(":");
-}
-
-function selectSum() {
-    let selectedMonth = document.getElementById("available-months");
-    let monthName = selectedMonth.options[selectedMonth.selectedIndex].text;
-    let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
-    let date = currYear + "-" + monthNumber.slice(-2);
-    let sum = days[date];
-    document.getElementById("month-sum").innerText = sum;
-}
-
 const monthNames = [
     "Jan",
     "Feb",
@@ -34,26 +13,18 @@ const monthNames = [
     "Dec",
 ];
 
-let url = document.getElementById("user-locations").getAttribute("data-url");
+let domainName = "https://profile.intra.42.fr";
 let currentUrl = window.location.href;
-let who = "Your";
 
-if (currentUrl.includes("users")) {
-    who = currentUrl.split("/")[4] + "'s";
-    url = "https://profile.intra.42.fr" + url;
-    let title = document.createElement("h4");
-    title.setAttribute("class", "profile-title");
-    title.innerText = "Logtime";
-    let parent = document.getElementById("locations");
-    let firstChild = document.getElementById("user-locations");
-    parent.insertBefore(title, firstChild);
-}
-
-let currDate = new Date();
-let currYear = currDate.getFullYear();
-let currMonth = currDate.getMonth() + 1;
-currDate = currYear + "-" + currMonth;
-
+let url = getStatsURL(domainName);
+let profileUsername = getUsername(url);
+let currentUser = getCurrentUser();
+let who = setWhosConcerned(isCurrentUserProfile, profileUsername, currentUser);
+let addedTitle = setTitleTag(
+    isCurrentUserProfile,
+    profileUsername,
+    currentUser
+);
 let days = {};
 
 fetch(url)
@@ -116,12 +87,12 @@ fetch(url)
             sumSpan.id = "month-sum";
             sumSpan.style.cssText = `
                 text-decoration: underline;
-	        text-decoration-style: dotted;
-	        text-decoration-thickness: 2px;
-		text-underline-offset: .2vh; 
-	        text-transform: lowercase; 
-		font-style: italic; 
-		color: rgb(0, 163, 164)
+                text-decoration-style: dotted;
+                text-decoration-thickness: 2px;
+                text-underline-offset: .2vh;
+                text-transform: lowercase;
+                font-style: italic;
+                color: rgb(0, 163, 164)
             `;
 
             let result = document.createElement("span");
@@ -136,3 +107,75 @@ fetch(url)
     .catch((err) => {
         throw err;
     });
+
+function sumTime(array) {
+    let times = [3600, 60, 1],
+        sum = array
+            .map((s) => s.reduce((s, v, i) => s + times[i] * v, 0))
+            .reduce((a, b) => a + b, 0);
+
+    return times
+        .map((t) => [Math.floor(sum / t), (sum %= t)][0])
+        .map((v) => v.toString().padStart(2, 0))
+        .join(":");
+}
+
+function selectSum() {
+    let selectedMonth = document.getElementById("available-months");
+    let monthName = selectedMonth.options[selectedMonth.selectedIndex].text;
+    let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
+    let currDate = new Date();
+    let currYear = currDate.getFullYear();
+    let date = currYear + "-" + monthNumber.slice(-2);
+    let sum = days[date];
+    document.getElementById("month-sum").innerText = sum;
+}
+
+function getStatsURL(domainName) {
+    let url = document
+        .getElementById("user-locations")
+        .getAttribute("data-url");
+    if (!url.includes(domainName)) {
+        url = "https://profile.intra.42.fr" + url;
+    }
+    return url;
+}
+
+function getUsername(url) {
+    return url.split("/")[4];
+}
+
+function getCurrentUser() {
+    return this._user["login"];
+}
+
+function isCurrentUserProfile(profileUsername, currentUser) {
+    return profileUsername == currentUser;
+}
+
+function setWhosConcerned(isCurrentUserProfile, profileUsername, currentUser) {
+    return isCurrentUserProfile(profileUsername, currentUser)
+        ? "Your"
+        : profileUsername + "'s";
+}
+
+function setTitleTag(isCurrentUserProfile, profileUsername, currentUser) {
+    if (!isCurrentUserProfile(profileUsername, currentUser)) {
+        let title = createLogtimeTitleElement();
+        return insertLogtimeTitleElement(title);
+    }
+    return null;
+}
+
+function createLogtimeTitleElement() {
+    let title = document.createElement("h4");
+    title.setAttribute("class", "profile-title");
+    title.innerText = "Logtime";
+    return title;
+}
+
+function insertLogtimeTitleElement(title) {
+    let parent = document.getElementById("locations");
+    let firstChild = document.getElementById("user-locations");
+    return parent.insertBefore(title, firstChild);
+}
