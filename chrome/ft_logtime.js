@@ -100,28 +100,29 @@ fetch(url)
                 option.text = monthNames[monthNum - 1];
                 option.value = monthNum;
                 dropdown.appendChild(option);
-                let month = parseInt(date.split("-")[1]);
-                if (month > latestMonth) {
-                    latestMonth = month;
+                if (monthNum > latestMonth) {
+                    latestMonth = monthNum;
                 }
             }
             for (i = 0; i < Object.keys(days).length; i++) {
                 let option = dropdown.options[i];
                 if (option.value == latestMonth) {
                     option.selected = "selected";
+                    break;
                 }
             }
 
             let sumSpan = document.createElement("span");
             sumSpan.id = "month-sum";
             sumSpan.style.cssText = `
-							text-decoration: underline;
-							text-decoration-style: dotted;
-							text-decoration-thickness: 2px;
-							text-underline-offset: .2vh; 
-							text-transform: lowercase; 
-							font-style: italic; 
-							color: rgb(0, 163, 164)`;
+                text-decoration: underline;
+	        text-decoration-style: dotted;
+	        text-decoration-thickness: 2px;
+		text-underline-offset: .2vh; 
+	        text-transform: lowercase; 
+		font-style: italic; 
+		color: rgb(0, 163, 164)
+            `;
 
             let result = document.createElement("span");
             result.style.cssText =
