@@ -90,7 +90,6 @@ function sumTime(array) {
 function reduceDaysToMonths(out) {
     let monthsLogtimes = {};
     for (const [key, value] of Object.entries(out)) {
-        debugger;
         let time = value.replace(/[^0-9:.]/g, "");
         time = time.split(":");
         time[2] = time[2].split(".")[0];
