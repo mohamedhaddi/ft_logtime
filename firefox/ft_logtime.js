@@ -214,7 +214,11 @@ function insertSum(currentYear, monthNames, logtimeSumPerMonth) {
             logtimeSumPerMonth
         );
         let sumSpan = document.getElementById("month-sum");
-        sumSpan.innerText = sum;
+        let animationSpan = createAnimationSpan();
+        animationSpan.innerText = sum;
+        let oldChild = sumSpan.firstChild;
+        if (oldChild) sumSpan.replaceChild(animationSpan, oldChild);
+        else sumSpan.append(animationSpan);
         return sumSpan;
     };
 }
@@ -225,4 +229,10 @@ function getSelectedMonthSum(currentYear, monthNames, logtimeSumPerMonth) {
     let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
     let date = currentYear + "-" + monthNumber.slice(-2);
     return logtimeSumPerMonth[date];
+}
+
+function createAnimationSpan() {
+    let animationSpan = document.createElement("span");
+    animationSpan.style.animation = "fadeIn .21s";
+    return animationSpan;
 }
