@@ -13,59 +13,35 @@ const monthNames = [
     "Dec",
 ];
 
-let domainName = "https://profile.intra.42.fr";
 let currentUrl = window.location.href;
-
-let url = getStatsURL(domainName);
-let profileUsername = getUsername(url);
+let currDate = new Date();
+let currYear = currDate.getFullYear();
+const domainName = "https://profile.intra.42.fr";
+let dataUrl = getDataUrl(domainName);
+let profileUsername = getUsername(dataUrl);
 let currentUser = getCurrentUser();
+let isCurrentUserProfile = profileUsername == currentUser;
 let who = setWhosConcerned(isCurrentUserProfile, profileUsername, currentUser);
 let addedTitle = setTitleTag(
     isCurrentUserProfile,
     profileUsername,
     currentUser
 );
-let days = {};
 
-fetch(url)
+fetch(dataUrl)
     .then((res) => res.json())
     .then((out) => {
         if (Object.getOwnPropertyNames(out).length !== 0) {
-            let sectionTitles = document.getElementsByClassName(
-                "profile-title"
-            );
-            let logtimeTitleElement = Array.from(sectionTitles)
-                .map((el) => {
-                    if (el.innerHTML.indexOf("Logtime") != -1) {
-                        return el;
-                    }
-                })
-                .filter((el) => {
-                    return el;
-                })[0];
+            let logtimeTitleElement = getLogtimeTitleElement();
+            let monthsLogtimeSum = sumUpDailyLogtimes(daysToMonths(out));
 
-            for (const [key, value] of Object.entries(out)) {
-                let date = key.substring(0, 7);
-                let time = value.split(":");
-                time[2] = time[2].split(".")[0];
-                if (!Array.isArray(days[date])) {
-                    days[date] = [];
-                }
-                days[date].push(time);
-            }
-
-            for (const [date, times] of Object.entries(days)) {
-                let time = sumTime(times).split(":");
-                time = time[0] + "h " + time[1] + "m " + time[2] + "s";
-                days[date] = time;
-            }
-
+            // continue here
             let dropdown = document.createElement("select");
             dropdown.id = "available-months";
             dropdown.style.cssText = "text-transform: uppercase";
-            dropdown.onchange = selectSum;
+            dropdown.onchange = insertSum(currentYear);
             let latestMonth = 0;
-            for (const date of Object.keys(days)) {
+            for (const date of Object.keys(monthsLogtimeSum)) {
                 let option = document.createElement("option");
                 let monthNum = parseInt(date.split("-")[1]);
                 option.text = monthNames[monthNum - 1];
@@ -75,7 +51,7 @@ fetch(url)
                     latestMonth = monthNum;
                 }
             }
-            for (i = 0; i < Object.keys(days).length; i++) {
+            for (i = 0; i < Object.keys(monthsLogtimeSum).length; i++) {
                 let option = dropdown.options[i];
                 if (option.value == latestMonth) {
                     option.selected = "selected";
@@ -101,7 +77,7 @@ fetch(url)
             result.append(who, " ", dropdown, " logtime is ", sumSpan);
             logtimeTitleElement.append(result);
 
-            selectSum();
+            insertSum(currentYear)();
         }
     })
     .catch((err) => {
@@ -120,18 +96,22 @@ function sumTime(array) {
         .join(":");
 }
 
-function selectSum() {
+function insertSum(currentYear) {
+    return () => {
+        sum = getSelectedMonthSum(currentYear);
+        document.getElementById("month-sum").innerText = sum;
+    };
+}
+
+function getSelectedMonthSum(currentYear) {
     let selectedMonth = document.getElementById("available-months");
     let monthName = selectedMonth.options[selectedMonth.selectedIndex].text;
     let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
-    let currDate = new Date();
-    let currYear = currDate.getFullYear();
-    let date = currYear + "-" + monthNumber.slice(-2);
-    let sum = days[date];
-    document.getElementById("month-sum").innerText = sum;
+    let date = currentYear + "-" + monthNumber.slice(-2);
+    return monthsLogtimeSum[date];
 }
 
-function getStatsURL(domainName) {
+function getDataUrl(domainName) {
     let url = document
         .getElementById("user-locations")
         .getAttribute("data-url");
@@ -141,26 +121,20 @@ function getStatsURL(domainName) {
     return url;
 }
 
-function getUsername(url) {
-    return url.split("/")[4];
+function getUsername(dataUrl) {
+    return dataUrl.split("/")[4];
 }
 
 function getCurrentUser() {
     return this._user["login"];
 }
 
-function isCurrentUserProfile(profileUsername, currentUser) {
-    return profileUsername == currentUser;
+function setWhosConcerned(isCurrentUserProfile, profileUsername) {
+    return isCurrentUserProfile ? "Your" : profileUsername + "'s";
 }
 
-function setWhosConcerned(isCurrentUserProfile, profileUsername, currentUser) {
-    return isCurrentUserProfile(profileUsername, currentUser)
-        ? "Your"
-        : profileUsername + "'s";
-}
-
-function setTitleTag(isCurrentUserProfile, profileUsername, currentUser) {
-    if (!isCurrentUserProfile(profileUsername, currentUser)) {
+function setTitleTag(isCurrentUserProfile) {
+    if (!isCurrentUserProfile) {
         let title = createLogtimeTitleElement();
         return insertLogtimeTitleElement(title);
     }
@@ -178,4 +152,41 @@ function insertLogtimeTitleElement(title) {
     let parent = document.getElementById("locations");
     let firstChild = document.getElementById("user-locations");
     return parent.insertBefore(title, firstChild);
+}
+
+function getLogtimeTitleElement() {
+    let sectionTitles = document.getElementsByClassName("profile-title");
+    return Array.from(sectionTitles)
+        .map((el) => {
+            if (el.innerHTML.indexOf("Logtime") != -1) {
+                return el;
+            }
+        })
+        .filter((el) => {
+            return el;
+        })[0];
+}
+
+function daysToMonths(out) {
+    let monthsDailyLogtimes = {};
+    for (const [key, value] of Object.entries(out)) {
+        let time = value.split(":");
+        time[2] = time[2].split(".")[0];
+        let date = key.substring(0, 7);
+        if (!Array.isArray(monthsDailyLogtimes[date])) {
+            monthsDailyLogtimes[date] = [];
+        }
+        monthsDailyLogtimes[date].push(time);
+    }
+    return monthsDailyLogtimes;
+}
+
+function sumUpDailyLogtimes(monthsDailyLogtimes) {
+    let monthsLogtimeSum = {};
+    for (const [date, times] of Object.entries(monthsDailyLogtimes)) {
+        let time = sumTime(times).split(":");
+        time = time[0] + "h " + time[1] + "m " + time[2] + "s";
+        monthsLogtimeSum[date] = time;
+    }
+    return monthsLogtimeSum;
 }
