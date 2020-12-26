@@ -1,18 +1,14 @@
 const domainName = "https://profile.intra.42.fr";
 let dataUrl = getDataUrl(domainName);
-let profileUsername = getUsername(dataUrl);
-let currentUser = getCurrentUser();
 
 fetch(dataUrl)
     .then((res) => res.json())
     .then((out) => {
         if (Object.getOwnPropertyNames(out).length !== 0) {
+            let currentYear = new Date().getFullYear();
             let logtimeSumPerMonth = sumUpDailyLogtimes(
                 reduceDaysToMonths(out)
             );
-
-            let currentYear = new Date().getFullYear();
-
             const monthNames = [
                 "Jan",
                 "Feb",
@@ -27,44 +23,53 @@ fetch(dataUrl)
                 "Nov",
                 "Dec",
             ];
-
             let dropdown = createOptionElements(
                 createDropdownElement(currentYear),
                 logtimeSumPerMonth,
                 monthNames
             );
-
             let defaultOption = setDefaultOption(dropdown, logtimeSumPerMonth);
-
             let sumSpan = createSumSpanElement();
-
+            let profileUsername = getUsername(dataUrl);
+            let currentUser = getCurrentUser();
             let isCurrentUserProfile = profileUsername == currentUser;
-
-            let who = setWhosConcerned(
-                isCurrentUserProfile,
-                profileUsername,
-                currentUser
-            );
-
+            let who = setWhosConcerned(isCurrentUserProfile, profileUsername);
             let message = createMessageSpanElement(who, dropdown, sumSpan);
-
-            logtimeTitleElement = getLogtimeTitleElement();
+            let logtimeTitleElement = getLogtimeTitleElement();
             if (!logtimeTitleElement)
                 logtimeTitleElement = insertLogtimeTitleElement(
                     createLogtimeTitleElement()
                 );
-
             logtimeTitleElement = insertMessageIntoLogtimeTitleElement(
                 message,
                 logtimeTitleElement
             );
-
-            let sumSpan = insertSum(currentYear)();
+            sumSpan = insertSum(currentYear)();
         }
     })
     .catch((err) => {
         throw err;
     });
+
+function getDataUrl(domainName) {
+    let url = document
+        .getElementById("user-locations")
+        .getAttribute("data-url");
+    if (!url.includes(domainName)) {
+        url = "https://profile.intra.42.fr" + url;
+    }
+    return url;
+}
+
+function sumUpDailyLogtimes(monthsLogtimes) {
+    let logtimeSumPerMonth = {};
+    for (const [date, times] of Object.entries(monthsLogtimes)) {
+        let time = sumTime(times).split(":");
+        time = time[0] + "h " + time[1] + "m " + time[2] + "s";
+        logtimeSumPerMonth[date] = time;
+    }
+    return logtimeSumPerMonth;
+}
 
 function sumTime(array) {
     let times = [3600, 60, 1],
@@ -78,93 +83,18 @@ function sumTime(array) {
         .join(":");
 }
 
-function insertSum(currentYear) {
-    return () => {
-        sum = getSelectedMonthSum(currentYear);
-        sumSpan = document.getElementById("month-sum");
-        sumSpan.innerText = sum;
-        return sumSpan;
-    };
-}
-
-function getSelectedMonthSum(currentYear) {
-    let selectedMonth = document.getElementById("available-months");
-    let monthName = selectedMonth.options[selectedMonth.selectedIndex].text;
-    let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
-    let date = currentYear + "-" + monthNumber.slice(-2);
-    return logtimeSumPerMonth[date];
-}
-
-function getDataUrl(domainName) {
-    let url = document
-        .getElementById("user-locations")
-        .getAttribute("data-url");
-    if (!url.includes(domainName)) {
-        url = "https://profile.intra.42.fr" + url;
-    }
-    return url;
-}
-
-function getUsername(dataUrl) {
-    return dataUrl.split("/")[4];
-}
-
-function getCurrentUser() {
-    return this._user["login"];
-}
-
-function setWhosConcerned(isCurrentUserProfile, profileUsername) {
-    return isCurrentUserProfile ? "Your" : profileUsername + "'s";
-}
-
-function createLogtimeTitleElement() {
-    let title = document.createElement("h4");
-    title.setAttribute("class", "profile-title");
-    title.innerText = "Logtime";
-    return title;
-}
-
-function insertLogtimeTitleElement(title) {
-    let parent = document.getElementById("locations");
-    let firstChild = document.getElementById("user-locations");
-    return parent.insertBefore(title, firstChild);
-}
-
-function getLogtimeTitleElement() {
-    let sectionTitles = document.getElementsByClassName("profile-title");
-    return Array.from(sectionTitles)
-        .map((el) => {
-            if (el.innerHTML.indexOf("Logtime") != -1) {
-                return el;
-            }
-        })
-        .filter((el) => {
-            return el;
-        })[0];
-}
-
 function reduceDaysToMonths(out) {
-    let monthsDailyLogtimes = {};
+    let monthsLogtimes = {};
     for (const [key, value] of Object.entries(out)) {
         let time = value.split(":");
         time[2] = time[2].split(".")[0];
         let date = key.substring(0, 7);
-        if (!Array.isArray(monthsDailyLogtimes[date])) {
-            monthsDailyLogtimes[date] = [];
+        if (!Array.isArray(monthsLogtimes[date])) {
+            monthsLogtimes[date] = [];
         }
-        monthsDailyLogtimes[date].push(time);
+        monthsLogtimes[date].push(time);
     }
-    return monthsDailyLogtimes;
-}
-
-function sumUpDailyLogtimes(monthsDailyLogtimes) {
-    let logtimeSumPerMonth = {};
-    for (const [date, times] of Object.entries(monthsDailyLogtimes)) {
-        let time = sumTime(times).split(":");
-        time = time[0] + "h " + time[1] + "m " + time[2] + "s";
-        logtimeSumPerMonth[date] = time;
-    }
-    return logtimeSumPerMonth;
+    return monthsLogtimes;
 }
 
 function createDropdownElement(currentYear) {
@@ -173,17 +103,6 @@ function createDropdownElement(currentYear) {
     dropdown.style.cssText = "text-transform: uppercase";
     dropdown.onchange = insertSum(currentYear);
     return dropdown;
-}
-
-function getLatestMonth(logtimeSumPerMonth) {
-    let latestMonth = 0;
-    for (const date of Object.keys(logtimeSumPerMonth)) {
-        let monthNum = parseInt(date.split("-")[1]);
-        if (monthNum > latestMonth) {
-            latestMonth = monthNum;
-        }
-    }
-    return latestMonth;
 }
 
 function createOptionElements(dropdown, logtimeSumPerMonth, monthNames) {
@@ -198,15 +117,26 @@ function createOptionElements(dropdown, logtimeSumPerMonth, monthNames) {
 }
 
 function setDefaultOption(dropdown, logtimeSumPerMonth) {
+    let latestMonth = getLatestMonth(logtimeSumPerMonth);
     for (i = 0; i < Object.keys(logtimeSumPerMonth).length; i++) {
         let option = dropdown.options[i];
-        latestMonth = getLatestMonth(logtimeSumPerMonth);
         if (option.value == latestMonth) {
             option.selected = "selected";
             return option;
         }
     }
     return null;
+}
+
+function getLatestMonth(logtimeSumPerMonth) {
+    let latestMonth = 0;
+    for (const date of Object.keys(logtimeSumPerMonth)) {
+        let monthNum = parseInt(date.split("-")[1]);
+        if (monthNum > latestMonth) {
+            latestMonth = monthNum;
+        }
+    }
+    return latestMonth;
 }
 
 function createSumSpanElement() {
@@ -224,6 +154,18 @@ function createSumSpanElement() {
     return sumSpan;
 }
 
+function getUsername(dataUrl) {
+    return dataUrl.split("/")[4];
+}
+
+function getCurrentUser() {
+    return this._user["login"];
+}
+
+function setWhosConcerned(isCurrentUserProfile, profileUsername) {
+    return isCurrentUserProfile ? "Your" : profileUsername + "'s";
+}
+
 function createMessageSpanElement(who, dropdown, sumSpan) {
     let message = document.createElement("span");
     message.style.cssText =
@@ -232,7 +174,50 @@ function createMessageSpanElement(who, dropdown, sumSpan) {
     return message;
 }
 
+function getLogtimeTitleElement() {
+    let sectionTitles = document.getElementsByClassName("profile-title");
+    return Array.from(sectionTitles)
+        .map((el) => {
+            if (el.innerHTML.indexOf("Logtime") != -1) {
+                return el;
+            }
+        })
+        .filter((el) => {
+            return el;
+        })[0];
+}
+
+function createLogtimeTitleElement() {
+    let title = document.createElement("h4");
+    title.setAttribute("class", "profile-title");
+    title.innerText = "Logtime";
+    return title;
+}
+
+function insertLogtimeTitleElement(title) {
+    let parent = document.getElementById("locations");
+    let firstChild = document.getElementById("user-locations");
+    return parent.insertBefore(title, firstChild);
+}
+
 function insertMessageIntoLogtimeTitleElement(message, logtimeTitleElement) {
     logtimeTitleElement.append(message);
     return logtimeTitleElement;
+}
+
+function insertSum(currentYear) {
+    return () => {
+        let sum = getSelectedMonthSum(currentYear);
+        let sumSpan = document.getElementById("month-sum");
+        sumSpan.innerText = sum;
+        return sumSpan;
+    };
+}
+
+function getSelectedMonthSum(currentYear) {
+    let selectedMonth = document.getElementById("available-months");
+    let monthName = selectedMonth.options[selectedMonth.selectedIndex].text;
+    let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
+    let date = currentYear + "-" + monthNumber.slice(-2);
+    return logtimeSumPerMonth[date];
 }
