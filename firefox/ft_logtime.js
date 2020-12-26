@@ -24,15 +24,19 @@ fetch(dataUrl)
                 "Dec",
             ];
             let dropdown = createOptionElements(
-                createDropdownElement(currentYear),
+                createDropdownElement(
+                    currentYear,
+                    monthNames,
+                    logtimeSumPerMonth
+                ),
                 logtimeSumPerMonth,
                 monthNames
             );
             let defaultOption = setDefaultOption(dropdown, logtimeSumPerMonth);
             let sumSpan = createSumSpanElement();
             let profileUsername = getUsername(dataUrl);
-            let currentUser = getCurrentUser();
-            let isCurrentUserProfile = profileUsername == currentUser;
+            let currentUrl = window.location.href;
+            let isCurrentUserProfile = !currentUrl.includes("user");
             let who = setWhosConcerned(isCurrentUserProfile, profileUsername);
             let message = createMessageSpanElement(who, dropdown, sumSpan);
             let logtimeTitleElement = getLogtimeTitleElement();
@@ -44,7 +48,7 @@ fetch(dataUrl)
                 message,
                 logtimeTitleElement
             );
-            sumSpan = insertSum(currentYear)();
+            sumSpan = insertSum(currentYear, monthNames, logtimeSumPerMonth)();
         }
     })
     .catch((err) => {
@@ -86,7 +90,9 @@ function sumTime(array) {
 function reduceDaysToMonths(out) {
     let monthsLogtimes = {};
     for (const [key, value] of Object.entries(out)) {
-        let time = value.split(":");
+        debugger;
+        let time = value.replace(/[^0-9:.]/g, "");
+        time = time.split(":");
         time[2] = time[2].split(".")[0];
         let date = key.substring(0, 7);
         if (!Array.isArray(monthsLogtimes[date])) {
@@ -97,11 +103,11 @@ function reduceDaysToMonths(out) {
     return monthsLogtimes;
 }
 
-function createDropdownElement(currentYear) {
+function createDropdownElement(currentYear, monthNames, logtimeSumPerMonth) {
     let dropdown = document.createElement("select");
     dropdown.id = "available-months";
     dropdown.style.cssText = "text-transform: uppercase";
-    dropdown.onchange = insertSum(currentYear);
+    dropdown.onchange = insertSum(currentYear, monthNames, logtimeSumPerMonth);
     return dropdown;
 }
 
@@ -158,10 +164,6 @@ function getUsername(dataUrl) {
     return dataUrl.split("/")[4];
 }
 
-function getCurrentUser() {
-    return this._user["login"];
-}
-
 function setWhosConcerned(isCurrentUserProfile, profileUsername) {
     return isCurrentUserProfile ? "Your" : profileUsername + "'s";
 }
@@ -205,16 +207,20 @@ function insertMessageIntoLogtimeTitleElement(message, logtimeTitleElement) {
     return logtimeTitleElement;
 }
 
-function insertSum(currentYear) {
+function insertSum(currentYear, monthNames, logtimeSumPerMonth) {
     return () => {
-        let sum = getSelectedMonthSum(currentYear);
+        let sum = getSelectedMonthSum(
+            currentYear,
+            monthNames,
+            logtimeSumPerMonth
+        );
         let sumSpan = document.getElementById("month-sum");
         sumSpan.innerText = sum;
         return sumSpan;
     };
 }
 
-function getSelectedMonthSum(currentYear) {
+function getSelectedMonthSum(currentYear, monthNames, logtimeSumPerMonth) {
     let selectedMonth = document.getElementById("available-months");
     let monthName = selectedMonth.options[selectedMonth.selectedIndex].text;
     let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
