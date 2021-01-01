@@ -5,7 +5,6 @@ fetch(dataUrl)
     .then((res) => res.json())
     .then((out) => {
         if (Object.getOwnPropertyNames(out).length !== 0) {
-            let currentYear = new Date().getFullYear();
             let logtimeSumPerMonth = sumUpDailyLogtimes(
                 reduceDaysToMonths(out)
             );
@@ -24,15 +23,16 @@ fetch(dataUrl)
                 "Dec",
             ];
             let dropdown = createOptionElements(
-                createDropdownElement(
-                    currentYear,
-                    monthNames,
-                    logtimeSumPerMonth
-                ),
+                createDropdownElement(monthNames, logtimeSumPerMonth),
                 logtimeSumPerMonth,
                 monthNames
             );
-            let defaultOption = setDefaultOption(dropdown, logtimeSumPerMonth);
+            let latestYear = getLatestYear(logtimeSumPerMonth);
+            let defaultOption = setDefaultOption(
+                latestYear,
+                dropdown,
+                logtimeSumPerMonth
+            );
             let sumSpan = createSumSpanElement();
             let profileUsername = getUsername(dataUrl);
             let currentUrl = window.location.href;
@@ -48,7 +48,7 @@ fetch(dataUrl)
                 message,
                 logtimeTitleElement
             );
-            sumSpan = insertSum(currentYear, monthNames, logtimeSumPerMonth)();
+            sumSpan = insertSum(monthNames, logtimeSumPerMonth)();
         }
     })
     .catch((err) => {
@@ -63,6 +63,21 @@ function getDataUrl(domainName) {
         url = "https://profile.intra.42.fr" + url;
     }
     return url;
+}
+
+function reduceDaysToMonths(out) {
+    let monthsLogtimes = {};
+    for (const [key, value] of Object.entries(out)) {
+        let time = value.replace(/[^0-9:.]/g, "");
+        time = time.split(":");
+        time[2] = time[2].split(".")[0];
+        let date = key.substring(0, 7);
+        if (!Array.isArray(monthsLogtimes[date])) {
+            monthsLogtimes[date] = [];
+        }
+        monthsLogtimes[date].push(time);
+    }
+    return monthsLogtimes;
 }
 
 function sumUpDailyLogtimes(monthsLogtimes) {
@@ -87,26 +102,22 @@ function sumTime(array) {
         .join(":");
 }
 
-function reduceDaysToMonths(out) {
-    let monthsLogtimes = {};
-    for (const [key, value] of Object.entries(out)) {
-        let time = value.replace(/[^0-9:.]/g, "");
-        time = time.split(":");
-        time[2] = time[2].split(".")[0];
-        let date = key.substring(0, 7);
-        if (!Array.isArray(monthsLogtimes[date])) {
-            monthsLogtimes[date] = [];
+function getLatestYear(logtimeSumPerMonth) {
+    let latestYear = 0;
+    for (const date of Object.keys(logtimeSumPerMonth)) {
+        let yearNum = parseInt(date.split("-")[0]);
+        if (yearNum > latestYear) {
+            latestYear = yearNum;
         }
-        monthsLogtimes[date].push(time);
     }
-    return monthsLogtimes;
+    return latestYear;
 }
 
-function createDropdownElement(currentYear, monthNames, logtimeSumPerMonth) {
+function createDropdownElement(monthNames, logtimeSumPerMonth) {
     let dropdown = document.createElement("select");
     dropdown.id = "available-months";
     dropdown.style.cssText = "text-transform: uppercase";
-    dropdown.onchange = insertSum(currentYear, monthNames, logtimeSumPerMonth);
+    dropdown.onchange = insertSum(monthNames, logtimeSumPerMonth);
     return dropdown;
 }
 
@@ -114,15 +125,16 @@ function createOptionElements(dropdown, logtimeSumPerMonth, monthNames) {
     for (const date of Object.keys(logtimeSumPerMonth)) {
         let option = document.createElement("option");
         let monthNum = parseInt(date.split("-")[1]);
+        let yearNum = parseInt(date.split("-")[0]);
         option.text = monthNames[monthNum - 1];
-        option.value = monthNum;
+        option.value = yearNum;
         dropdown.appendChild(option);
     }
     return dropdown;
 }
 
-function setDefaultOption(dropdown, logtimeSumPerMonth) {
-    let latestMonth = getLatestMonth(logtimeSumPerMonth);
+function setDefaultOption(latestYear, dropdown, logtimeSumPerMonth) {
+    let latestMonth = getLatestMonth(latestYear, logtimeSumPerMonth);
     for (i = 0; i < Object.keys(logtimeSumPerMonth).length; i++) {
         let option = dropdown.options[i];
         if (option.value == latestMonth) {
@@ -133,12 +145,16 @@ function setDefaultOption(dropdown, logtimeSumPerMonth) {
     return null;
 }
 
-function getLatestMonth(logtimeSumPerMonth) {
+function getLatestMonth(latestYear, logtimeSumPerMonth) {
     let latestMonth = 0;
     for (const date of Object.keys(logtimeSumPerMonth)) {
-        let monthNum = parseInt(date.split("-")[1]);
-        if (monthNum > latestMonth) {
-            latestMonth = monthNum;
+        let year = date.split("-")[0];
+        let month = date.split("-")[1];
+        if (year == latestYear) {
+            let monthNum = parseInt(month);
+            if (monthNum > latestMonth) {
+                latestMonth = monthNum;
+            }
         }
     }
     return latestMonth;
@@ -206,13 +222,9 @@ function insertMessageIntoLogtimeTitleElement(message, logtimeTitleElement) {
     return logtimeTitleElement;
 }
 
-function insertSum(currentYear, monthNames, logtimeSumPerMonth) {
+function insertSum(monthNames, logtimeSumPerMonth) {
     return () => {
-        let sum = getSelectedMonthSum(
-            currentYear,
-            monthNames,
-            logtimeSumPerMonth
-        );
+        let sum = getSelectedMonthSum(monthNames, logtimeSumPerMonth);
         let sumSpan = document.getElementById("month-sum");
         let animationSpan = createAnimationSpan();
         animationSpan.innerText = sum;
@@ -223,11 +235,12 @@ function insertSum(currentYear, monthNames, logtimeSumPerMonth) {
     };
 }
 
-function getSelectedMonthSum(currentYear, monthNames, logtimeSumPerMonth) {
+function getSelectedMonthSum(monthNames, logtimeSumPerMonth) {
     let selectedMonth = document.getElementById("available-months");
+    let yearNum = selectedMonth.options[selectedMonth.selectedIndex].value;
     let monthName = selectedMonth.options[selectedMonth.selectedIndex].text;
     let monthNumber = "0" + (monthNames.indexOf(monthName) + 1);
-    let date = currentYear + "-" + monthNumber.slice(-2);
+    let date = yearNum + "-" + monthNumber.slice(-2);
     return logtimeSumPerMonth[date];
 }
 

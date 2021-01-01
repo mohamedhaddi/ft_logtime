@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "ft_logtime",
-    "version": "1.9",
+    "version": "2.0",
     "description": "Calculates your logtime at https://intra.42.fr.",
     "icons": {
         "48": "icons/42-logo.png"
@@ -18,7 +18,7 @@
     ],
     "browser_specific_settings": {
         "gecko": {
-            "id": "ft_logtime-1.9@intra.42.fr"
+            "id": "ft_logtime-2.0@intra.42.fr"
         }
     }
 }
