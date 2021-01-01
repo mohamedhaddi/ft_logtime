@@ -10,4 +10,4 @@ If you'd like to use it:
 It is available in the [Chrome Web Store](https://chrome.google.com/webstore/detail/ftlogtime/mnohnflacgkmhaocfhhmjeeciibiciep).
 
 ### For Firefox:
-Just download the [`firefox/web-ext-artifacts/ft_logtime-1.9-an+fx.xpi`](https://github.com/mohamedhaddi/ft_logtime/blob/main/firefox/web-ext-artifacts/ft_logtime-1.9-an%2Bfx.xpi) file from this repo and upload it to **Menu > Add-ons > Settings cog > Install Add-on From File** in your Firefox browser.
+Just download the [`firefox/web-ext-artifacts/ft_logtime-2.0-an+fx.xpi`](https://github.com/mohamedhaddi/ft_logtime/blob/main/firefox/web-ext-artifacts/ft_logtime-2.0-an%2Bfx.xpi) file from this repo and upload it to **Menu > Add-ons > Settings cog > Install Add-on From File** in your Firefox browser.
