@@ -1,3 +1,7 @@
+## Bug fixes
+#### Version 2.0:
+- With the start of 2021 a bug occurred where only 2021's months were able to show the log time (other years months showed "undefined"), it's fixed now.
+
 # ft_logtime
 A simple extension for Firefox and Chrome that sums up the daily hours of log time of a user at [https://intra.42.fr](https://intra.42.fr) and shows the sum of each month in their *Logtime* section of the profile.
 The sum is updated every time the page is reloaded.
